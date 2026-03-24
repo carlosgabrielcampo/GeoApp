@@ -1,30 +1,21 @@
 import { DataFormat } from "@/types/geojson";
 import { DatabaseFormat } from "@/types/database";
-
-export interface GetByIdReturn {
-    status: number, json: DataFormat | { message: string },
-}
-
-export interface GetAllReturn {
-    status: number;
-    json: DatabaseFormat | { message: string };
-}
+import { RequestReturn } from "@/types/database";
 
 const features: DatabaseFormat = {
     "a557be5d-820c-408d-b96b-4cea113fca51": {
-    "type": "Feature",
-    "geometry": {
-        "type": "Point",
-        "coordinates": [-47.8825, -15.7942]
-    },
-    "properties": {
-        "name": "Exemplo de Ponto",
-        "description": "Este é um ponto de exemplo."
-    }
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-28.023940446379825, -48.615033030509956]
+        },
+        "properties": {
+            "name": "Exemplo de Ponto",
+            "description": "Este é um ponto de exemplo."
+        }
     }
 };
-
-const IdCheck = ( id: string ) => {
+const IdCheck = (id: string) => {
     if (!id) {
         return {
             status: 400,
@@ -32,8 +23,7 @@ const IdCheck = ( id: string ) => {
         };
     }
 }
-
-export const GetById = ( id: string ): GetByIdReturn => {
+export const GetById = (id: string): RequestReturn => {
     try {
         const idCheck = IdCheck(id)
         if (idCheck) {
@@ -55,8 +45,8 @@ export const GetById = ( id: string ): GetByIdReturn => {
         };
     }
 }
-
-export const GetAll = (): GetAllReturn => {
+export const GetAll = (): RequestReturn => {
+    console.log('GetAll',{ features })
     try {
         return {
             status: 200,
@@ -71,8 +61,7 @@ export const GetAll = (): GetAllReturn => {
         };
     }
 }
-
-export const Post = ( id: string, body: DataFormat ): GetByIdReturn => {
+export const Post = (id: string, body: DataFormat): RequestReturn => {
     try {
         const idCheck = IdCheck(id)
         if (idCheck) {
@@ -99,8 +88,7 @@ export const Post = ( id: string, body: DataFormat ): GetByIdReturn => {
     }
 
 };
-
-export const Put = ( id: string, body: DataFormat ): GetByIdReturn => {
+export const Put = (id: string, body: DataFormat): RequestReturn => {
     try {
         const idCheck = IdCheck(id)
         if (idCheck) {
@@ -128,9 +116,10 @@ export const Put = ( id: string, body: DataFormat ): GetByIdReturn => {
         };
     }
 }
-
-export const DeleteById = ( id: string ) => {
+export const DeleteById = (id: string): RequestReturn => {
     try {
+        console.log({id, features, featuresid: features[id]}, )
+
         const idCheck = IdCheck(id)
         if (idCheck) {
             return idCheck;
@@ -138,9 +127,13 @@ export const DeleteById = ( id: string ) => {
         if (!features[id]) {
             return {
                 status: 400,
-                json: 'Register does not exist',
+                json: {
+                    message: 'Register does not exist',
+                }
             };
         } else {
+            delete features[id];
+            console.log(features[id]);
             return {
                 status: 204,
                 json: {

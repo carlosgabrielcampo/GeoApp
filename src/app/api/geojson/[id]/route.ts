@@ -1,11 +1,11 @@
 import { GetById, Put, DeleteById } from "@/database/db";
 import { DataFormat } from "@/types/geojson";
 import { NextResponse } from "next/server";
-export async function GETBYID({
-    params
-}: {
-    params: Promise<{ id: string }>
-}) {
+
+export async function GET(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
     try {
         const { id } = await params;
         return NextResponse.json(GetById(id));
@@ -44,7 +44,8 @@ export async function PUT(
     }
 }
 
-export async function DELETEBYID(
+export async function DELETE(
+    request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {

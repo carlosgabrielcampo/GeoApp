@@ -3,7 +3,7 @@ type GeometryTypes = "Point"
 
 interface Geometry {
     "type": GeometryTypes,
-    "coordinates": [number, number] | [number, number, number]
+    "coordinates": [number, number]
 }
 
 interface Properties {
