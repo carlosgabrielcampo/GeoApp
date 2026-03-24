@@ -2,6 +2,11 @@ import { DataFormat } from "@/types/geojson";
 import { ApiEnvelope } from "@/types/database";
 
 const GEOJSON_API = "/api/geojson";
+type CreateFeatureInput = {
+  coordinates: [number, number];
+  name?: string;
+  description?: string;
+};
 
 async function request<T>(input: string, init?: RequestInit): Promise<ApiEnvelope<T>> {
   const response = await fetch(input, {
@@ -34,7 +39,7 @@ export function getFeatureById(id: string) {
 }
 
 export function createFeature(
-  {type, coordinates, name, description} = { name: '', description: ''}
+  { coordinates, name = "", description = "" }: CreateFeatureInput
 ) {
   const feature = {
     type: 'Feature',

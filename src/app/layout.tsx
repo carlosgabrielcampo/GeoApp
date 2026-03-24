@@ -16,8 +16,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Geo App",
+  title: {
+    default: "Geo App",
+    template: "%s | Geo App",
+  },
+  applicationName: "Geo App",
   description: "Geo App created using next app",
+  icons: {
+    icon: "/icon.ico",
+    shortcut: "/icon.ico",
+    apple: "/icon.ico",
+  },
 };
 
 export default function RootLayout({

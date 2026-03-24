@@ -16,7 +16,8 @@ export type EditablePoint = {
 
 export type PointsProps = {
   points: [string, DataFormat][];
-  load: () => Promise<void>;
+  iconByType: Record<DataFormat["type"], Icon<IconOptions>>;
+  clickPoint: (selected: { id: string; } & DataFormat) => void;
 };
 
 export interface PointInterface {
@@ -26,7 +27,10 @@ export interface PointInterface {
   name?: string,
   description?: string,
   icon: Icon<IconOptions> | DivIcon | undefined
-  eventHandlers?: { dblclick: () => void, click: () => void }
+  eventHandlers?: {
+    dblclick?: () => void;
+    click?: () => void;
+  }
 }
 
 export type PointInsertProps = {
