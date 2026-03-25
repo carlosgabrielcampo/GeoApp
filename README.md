@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GeoApp
 
-## Getting Started
+Aplicacao web para visualizacao e gerenciamento de pontos geograficos em mapa, com suporte a criacao, edicao e remocao de registros no formato GeoJSON.
 
-First, run the development server:
+## Tecnologias principais
+
+- Next.js 16 com App Router
+- React 19
+- TypeScript
+- Leaflet + React Leaflet
+- Tailwind CSS 4
+- React Toastify
+- Lucide React
+
+## Como instalar e rodar
+
+### 1. Pre-requisitos
+
+- Node.js 20 ou superior
+- npm
+
+Observacao: o projeto possui `package-lock.json`, entao o fluxo recomendado e utilizar `npm`.
+
+### 2. Instalar dependencias
+
+Na raiz do projeto, execute:
+
+```bash
+npm install
+```
+
+### 3. Rodar em desenvolvimento
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Depois, acesse:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Gerar build de producao
 
-## Learn More
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Rodar a aplicacao em modo de producao
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Depois do build:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run start
+```
 
-## Deploy on Vercel
+### 6. Executar lint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run lint
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estrutura resumida
+
+- `src/app`: paginas e rotas da aplicacao com App Router
+- `src/app/api/geojson`: endpoints para listar, criar, editar e remover pontos
+- `src/components/map`: renderizacao do mapa e dos pontos
+- `src/components/modal`: formulario de criacao/edicao de pontos
+- `src/components/providers`: componentes de suporte de interface, como sidebar
+- `src/database/db.ts`: armazenamento em memoria dos registros
+- `src/services/dbHandler.ts`: camada cliente para consumo da API
+
+## Decisoes tecnicas
+
+### Next.js com App Router
+
+O projeto foi estruturado em Next.js para aproveitar:
+
+- roteamento nativo
+- API Routes via `route.ts`
+- separacao clara entre interface, servicos e camada de acesso a dados
+
+Essa escolha simplifica a organizacao do projeto e permite manter frontend e backend leve no mesmo codigo-base.
+
+### TypeScript
+
+TypeScript foi utilizado para garantir tipagem dos objetos GeoJSON, contratos da API e estados da interface. Isso reduz erros comuns de integracao entre formulario, mapa e endpoints.
+
+### Leaflet + React Leaflet
+
+Leaflet foi escolhido por ser uma biblioteca madura e adequada para mapas interativos 2D. O `react-leaflet` foi usado para integrar o mapa ao ecossistema React de forma declarativa.
+
+Como Leaflet depende de APIs do navegador, o mapa principal e carregado com `dynamic import` e `ssr: false`, evitando problemas de renderizacao no servidor.
+
+### API interna com armazenamento em memoria
+
+Os dados sao manipulados por rotas em `src/app/api/geojson` e armazenados em memoria em `src/database/db.ts`.
+
+Essa abordagem foi uma escolha simples e direta para a implementacao atual porque:
+
+- elimina dependencias externas de banco de dados
+- facilita testes locais
+- deixa o fluxo CRUD visivel e facil de entender
+
+### Tailwind CSS e bibliotecas auxiliares
+
+Tailwind CSS foi usado para acelerar a construcao da interface, principalmente no mapa, modal e sidebar. Bibliotecas auxiliares completam a experiencia:
+
+- `lucide-react` para icones
+- `react-toastify` para feedback visual de sucesso e erro
+- `uuid` para geracao dos identificadores dos novos pontos
+
+## Observacoes relevantes
+
+- Nao ha uso de variaveis de ambiente no estado atual do projeto.
+- Os dados nao sao persistidos em banco. Como o armazenamento e em memoria, qualquer reinicializacao do servidor faz os registros voltarem ao estado inicial definido em `src/database/db.ts`.
+- O endpoint de GeoJSON foi pensado para trabalhar com `Feature` do tipo `Point`.
+- Existe um ponto inicial de exemplo cadastrado para facilitar a validacao da interface e do fluxo CRUD.
+- O projeto depende de tiles do OpenStreetMap para exibicao do mapa.
+
+## Scripts disponiveis
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```

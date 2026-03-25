@@ -7,7 +7,7 @@ const features: DatabaseFormat = {
         "type": "Feature",
         "geometry": {
             "type": "Point",
-            "coordinates": [-28.023940446379825, -48.615033030509956]
+            "coordinates": [-28.679780189620093, -49.36970930019219]
         },
         "properties": {
             "name": "Exemplo de Ponto",

@@ -124,6 +124,25 @@ export default function DynamicMap() {
     });
   };
 
+
+  const updateCoordinates = (value: string) => {
+    console.log(value)
+    setSelectedPoint((currentPoint) => {
+      if (!currentPoint) {
+        return currentPoint;
+      }
+
+      return {
+        ...currentPoint,
+        geometry: {
+          ...currentPoint.geometry,
+          coordinates: value
+        }
+      };
+    });
+  };
+
+
   useEffect(() => {
     const loadGeojson = async () => {
       try {
@@ -191,6 +210,7 @@ export default function DynamicMap() {
           />
           <PointInsert
             onChangeCoordinates={startCoordinatePicking}
+            updateCoordinates={updateCoordinates}
             onChangeDetails={updateDraftField}
             selectedPoint={selectedPoint}
             isOpen={isModalOpen}
@@ -210,13 +230,12 @@ export default function DynamicMap() {
         </MapContainer>
         <SidebarProvider
           points={points}
-          sidebarIconSrc={FeatureIcon.src ?? FeatureIcon}
           clickPoint={clickPoint}
-          setIsPickingCoordinates={setIsPickingCoordinates}
-          setSelectedPoint={setSelectedPoint}
           EMPTY_POINT={EMPTY_POINT}
+          setSelectedPoint={setSelectedPoint}
+          sidebarIconSrc={FeatureIcon.src ?? FeatureIcon}
+          setIsPickingCoordinates={setIsPickingCoordinates}
         />
-
       </>
     );
 }
