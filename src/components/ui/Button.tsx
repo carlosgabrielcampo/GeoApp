@@ -1,11 +1,12 @@
 import { MouseEventHandler, ReactElement } from "react";
 
-interface buttonInterface {
-    onclick: MouseEventHandler<HTMLButtonElement>,
-    styleType: 'default',
+interface ButtonInterface {
+    onclick?: MouseEventHandler<HTMLButtonElement>,
+    styleType: "default" | "warning" | "action",
     type: "submit" | "reset" | "button" | undefined,
     children: ReactElement<string>
-    width: string
+    width?: string
+    disabled?: boolean
 }
 
 export default function Button(
@@ -14,18 +15,21 @@ export default function Button(
     styleType,
     type,
     children,
-    width
-  }: buttonInterface,
+    width,
+    disabled
+  }: ButtonInterface,
 ){
-  const buttonType = {
-    'default': "rounded-lg border border-slate-300 p-2 font-mono text-xs hover:bg-slate-50",
-    'warning': "rounded-lg border bg-[#ef3840] text-white border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[#ef3840]/90"
+  const buttonStyle = {
+    "default": "rounded-lg border border-slate-300 p-2 font-mono text-xs hover:bg-slate-50",
+    "action": "rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300",
+    "warning": "rounded-lg border bg-[#ef3840] text-white border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[#ef3840]/90"
   }
   return <button
+    disabled={disabled}
     style={{ width }}
     type={type}
     onClick={onclick}
-    className={buttonType[styleType] || buttonType['default']}
+    className={buttonStyle[styleType] || buttonStyle["default"]}
   >
     {children}
   </button>

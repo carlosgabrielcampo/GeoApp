@@ -5,10 +5,10 @@ export default function Label(
         { value: ReactElement, styleType: "default" }
 
 ) {
-    const labelType = {
+    const labelStyle = {
         'default': "flex flex-col gap-1 text-sm text-slate-700"
     }
     return value
-        ? <label className={labelType[styleType] || labelType['default']}>{value}</label>
+        ? <label className={labelStyle[styleType] || labelStyle['default']}>{value}</label>
         : null
 }

@@ -42,8 +42,8 @@ export type PointInsertProps = {
   isPickingCoordinates?: boolean;
   onClose: () => void;
   onDelete: () => void;
-  updateCoordinates: (value: [number, number]) => void;
-  onChangeDetails: (field: "name" | "description", value: string) => void;
   onConfirm: (feature: DataFormat) => void;
   onChangeCoordinates: () => void;
+  updateCoordinates: (value: [number, number]) => void;
+  onChangeDetails: (field: "name" | "description", value: string) => void;
 };

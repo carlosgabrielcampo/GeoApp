@@ -1,17 +1,29 @@
 import { ChangeEventHandler } from "react";
 
+interface InputInterface {
+    styleType: 'default',
+    value: string | number, 
+    onchange: ChangeEventHandler<HTMLInputElement>, 
+    type: string, 
+    placeholder?: string, 
+    width?: string
+}
+
 export default function Input(
-  { value, onchange, type, placeholder, width }:
-  { value: string | number, onchange: ChangeEventHandler<HTMLInputElement>, type: string, placeholder?: string, width?: string }
+  { value, onchange, type, placeholder, width, styleType }: InputInterface
 ){
+  const inputStyle = {
+    'default': 'rounded-lg border border-slate-300 px-4 py-2 text-slate-900 outline-none transition focus:border-slate-500',
+  }
+
   return <div
     style={{ width }}
-    className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-600"
+    className={inputStyle[styleType] || inputStyle['default']}
   >
     <input
       type={type}
       onChange={onchange}
-      className="overflow-hidden"
+      className="overflow-hidden w-[100%]"
       value={value}
       placeholder={placeholder}
     />

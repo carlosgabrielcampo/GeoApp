@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo } from "react";
 import { PointInsertProps } from "@/types/points";
 import { Copy, X } from "lucide-react";
 import { copyToclipboard } from "@/util/navigation";
-import { TextArea, Button, Input, Select, Label } from "../ui";
+import { TextArea, Button, Input, Select, Label, Text } from "../ui";
 
 export default function PointInsert({
   selectedPoint,
@@ -73,22 +73,23 @@ export default function PointInsert({
       <div className="flex  h-[100%] w-[400px] flex-col rounded-2xl bg-white p-6 shadow-2xl touch-auto">
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              {isEditing ? "Edit point" : "Create point"}
-            </h2>
-            <p className="text-sm text-slate-500">
-              {isEditing
-                ? "Update the GeoJSON point."
-                : "Create a new GeoJSON point."}
-            </p>
+            <Text
+              value={isEditing ? "Edit point" : "Create point"}
+              styleType="title"
+            />
+            <Text
+              value={isEditing ? "Update the GeoJSON point." : "Create a new GeoJSON point."}
+              styleType="subtitle"
+            />
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-slate-300 p-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          <Button
+            onclick={onClose}
+            styleType="default"
+            disabled={!selectedPoint?.geometry?.coordinates}
+            type="submit"
           >
             <X size={16} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
@@ -99,12 +100,14 @@ export default function PointInsert({
             <Label value={<p>Coordinates</p>} styleType="default" />
             <div className="flex justify-center items-center gap-1 ]">
               <Input
+                styleType="default"
                 type={"number"}
                 width={"44%"}
                 onchange={({ target: { value } }) => updateCoordinates([Number(value), Number(coordinates?.[1])])}
                 value={coordinates ? `${coordinates[0]}` : "No coordinates selected"}
               />
               <Input
+                styleType="default"
                 type={"number"}
                 width={"44%"}
                 onchange={({ target: { value } }) => updateCoordinates([Number(coordinates?.[0]), Number(value)])}
@@ -133,6 +136,7 @@ export default function PointInsert({
             styleType="default"
           />
           <Input
+            styleType="default"
             type={"number"}
             onchange={({ target: { value } }) => updateCoordinates([Number(coordinates?.[0]), Number(value)])}
             value={selectedPoint?.properties.name || ""}
@@ -150,21 +154,21 @@ export default function PointInsert({
           />
           <div className="flex items-center justify-end gap-3 pt-2">
             {isEditing ? (
-              <button
+              <Button
+                onclick={onDelete}
+                styleType="warning"
                 type="button"
-                onClick={onDelete}
-                className="rounded-lg border bg-[#ef3840] text-white border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[#ef3840]/90"
               >
-                Delete
-              </button>
+                <p>Delete</p>
+              </Button>
             ) : null}
-            <button
-              type="submit"
+            <Button
               disabled={!selectedPoint?.geometry?.coordinates}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              styleType="action"
+              type="submit"
             >
-              {isEditing ? "Update" : "Create"}
-            </button>
+              {isEditing ? <p>Update</p> : <p>Create</p>}
+            </Button>
           </div>
         </form>
       </div>
