@@ -1,56 +1,57 @@
 "use client";
+
 import { createFeature, deleteFeature, getAllFeatures, updateFeature } from "@/services/dbHandler";
-import { MapContainer, TileLayer, useMapEvents, useMap } from "react-leaflet";
-import FeatureIcon from '@/assets/icons/pino-de-localizacao.ico'
-import { DataFormat } from "@/types/geojson";
+import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import FeatureIcon from "@/assets/icons/pino-de-localizacao.ico";
+import {
+  DataFormat,
+  LeafletCoordinates,
+  toGeoJsonCoordinates,
+  toLeafletCoordinates,
+} from "@/types/geojson";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import PointsRenderer from "./Points";
 import LoadingScreen from "../providers/LoadingScreenProvider";
 import SidebarProvider from "../providers/SidebarProvider";
-import L, { Icon, IconOptions } from 'leaflet'
+import L, { Icon, IconOptions } from "leaflet";
 import { EditablePoint, PointSelection } from "@/types/points";
 import PointHandler from "../modal/PointHandler";
 import { toast } from "react-toastify";
 import { ZoomIn, ZoomOut } from "lucide-react";
 
 export default function DynamicMap() {
-  const [selectedPoint, setSelectedPoint] = useState<EditablePoint | null>(null)
-  const [newPointCoord, setNewPointCoord] = useState<[number, number] | null>(null)
+  const [selectedPoint, setSelectedPoint] = useState<EditablePoint | null>(null);
+  const [newPointCoord, setNewPointCoord] = useState<LeafletCoordinates | null>(null);
   const [isPickingCoordinates, setIsPickingCoordinates] = useState(false);
-  const [position, setPosition] = useState<[number, number]>([0, 0])
-  const [points, setPoints] = useState<[string, DataFormat][]>([]);
-  const [isLoading, setIsLoading] = useState(false)
-  const [zoom, setZoom] = useState(8)
+  const [position, setPosition] = useState<LeafletCoordinates>([0, 0]);
+  const [points, setPoints] = useState<DataFormat[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [zoom, setZoom] = useState(8);
 
-  const minZoom = 2
-  const maxZoom = 18
+  const minZoom = 2;
+  const maxZoom = 18;
   const outerBounds = [[90, 180], [-90, -180]] as [[number, number], [number, number]];
-  const empty_point: EditablePoint = {
+  const emptyPoint: EditablePoint = {
     type: "Feature",
     geometry: { type: "Point" },
     properties: { name: "", description: "" },
   };
 
   const load = useCallback(async () => {
-    const result = await getAllFeatures();
-    const data = result.json;
-    if (!data || typeof data !== "object" || "message" in data) {
-      setPoints([]);
-      return;
-    }
-
-    const mapEntries = Object.entries(data);
-    const filteredPoints = mapEntries.filter(
-      (entry): entry is [string, DataFormat] => entry[1].geometry.type === "Point"
+    const data = await getAllFeatures();
+    const filteredPoints = data.features.filter(
+      (feature): feature is DataFormat => feature.geometry.type === "Point"
     );
-    const firstPoint = filteredPoints?.[0]?.[1]
+    const firstPoint = filteredPoints[0];
+
     if (firstPoint) {
       setPosition((currentPosition) =>
         currentPosition.every((value) => value === 0)
-          ? firstPoint.geometry.coordinates
+          ? toLeafletCoordinates(firstPoint.geometry.coordinates)
           : currentPosition
       );
     }
+
     setPoints(filteredPoints);
   }, []);
 
@@ -61,6 +62,7 @@ export default function DynamicMap() {
         await load();
       } catch (error) {
         console.error(error);
+        toast.error("Failed to load points.");
       } finally {
         setIsLoading(false);
       }
@@ -74,18 +76,20 @@ export default function DynamicMap() {
       await deleteFeature(id);
       setSelectedPoint(null);
       setIsPickingCoordinates(false);
+      setNewPointCoord(null);
       await load();
       toast.success("Point deleted successfully.");
     } catch (error) {
       console.error("Failed to delete point", error);
-      toast.error("Failed to delete point.");
+      toast.error(error instanceof Error ? error.message : "Failed to delete point.");
     }
   };
+
   const savePoint = async (feature: DataFormat) => {
     try {
-      if(feature.geometry.coordinates.some((e) => typeof e !== 'number') ){
-        toast.error('Coordinates not set')
-        return null
+      if (feature.geometry.coordinates.some((value) => !Number.isFinite(value))) {
+        toast.error("Coordinates not set.");
+        return;
       }
 
       if (selectedPoint?.id) {
@@ -102,16 +106,19 @@ export default function DynamicMap() {
 
       setSelectedPoint(null);
       setIsPickingCoordinates(false);
+      setNewPointCoord(null);
       await load();
     } catch (error) {
       console.error("Failed to save point", error);
-      toast.error("Failed to save point.");
+      toast.error(error instanceof Error ? error.message : "Failed to save point.");
     }
   };
+
   const startCoordinatePicking = () => {
     setIsPickingCoordinates(true);
     toast.info("Double click the map to choose coordinates.");
   };
+
   const updateDraftField = (field: "name" | "description", value: string) => {
     setSelectedPoint((currentPoint) => {
       if (!currentPoint) return currentPoint;
@@ -125,7 +132,8 @@ export default function DynamicMap() {
       };
     });
   };
-  const updateCoordinates = (value: [number, number]) => {
+
+  const updateCoordinates = (value: DataFormat["geometry"]["coordinates"]) => {
     setSelectedPoint((currentPoint) => {
       if (!currentPoint) return currentPoint;
 
@@ -133,15 +141,17 @@ export default function DynamicMap() {
         ...currentPoint,
         geometry: {
           ...currentPoint.geometry,
-          coordinates: value
-        }
+          coordinates: value,
+        },
       };
     });
   };
+
   const clickPoint = (selected: PointSelection) => {
     setIsPickingCoordinates(false);
-    setPosition(selected.geometry.coordinates)
-    setSelectedPoint(selected)
+    setNewPointCoord(null);
+    setPosition(toLeafletCoordinates(selected.geometry.coordinates));
+    setSelectedPoint(selected);
   };
 
   const iconByType: Record<DataFormat["type"], Icon<IconOptions>> = {
@@ -150,86 +160,102 @@ export default function DynamicMap() {
       iconSize: [32, 32],
     }),
   };
+
   const isModalOpen = Boolean(selectedPoint) && !isPickingCoordinates;
 
+  return isLoading ? (
+    <LoadingScreen message="Loading locations..." />
+  ) : (
+    <>
+      <MapContainer
+        zoom={zoom}
+        center={position}
+        minZoom={minZoom}
+        maxZoom={maxZoom}
+        zoomControl={false}
+        maxBounds={outerBounds}
+        doubleClickZoom={false}
+        className="h-[100vh] w-[100vw]"
+      >
+        <ChangeView position={position} zoom={zoom} />
+        <TileLayer attribution="" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <PointsRenderer
+          points={points}
+          iconByType={iconByType}
+          clickPoint={clickPoint}
+          newPoint={newPointCoord}
+        />
+        <ZoomHandler setZoom={setZoom} />
+        <MapEventsHandler
+          onPickCoordinates={(coordinates) => {
+            const geoJsonCoordinates = toGeoJsonCoordinates(coordinates);
 
-  return isLoading
-    ? <LoadingScreen message="Loading locations..." />
-    : (
-      <>
-        <MapContainer
-          zoom={zoom}
-          center={position}
-          minZoom={minZoom}
-          maxZoom={maxZoom}
-          zoomControl={false}
-          maxBounds={outerBounds}
-          doubleClickZoom={false}
-          className="h-[100vh] w-[100vw]"
-        >
-          <ChangeView position={position} zoom={zoom} />
-          <TileLayer attribution="" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <PointsRenderer points={points} iconByType={iconByType} clickPoint={clickPoint} newPoint={newPointCoord} />
-          <ZoomHandler setZoom={setZoom} />
-          <MapEventsHandler
-            onPickCoordinates={(coordinates) => {
-              setSelectedPoint((currentPoint) => ({
-                ...(currentPoint ?? { ...empty_point }),
-                geometry: {
-                  type: "Point",
-                  coordinates,
-                },
-              }
-              ));
-              setNewPointCoord(coordinates)
-              setIsPickingCoordinates(false);
-              toast.success("Coordinates selected.");
-            }}
-            isModalOpen={isModalOpen}
-            setPosition={setPosition}
-            setZoom={setZoom}
-          />
-          <PointHandler
-            onChangeCoordinates={startCoordinatePicking}
-            updateCoordinates={updateCoordinates}
-            onChangeDetails={updateDraftField}
-            selectedPoint={selectedPoint}
-            isOpen={isModalOpen}
-            onClose={() => {
-              console.log('closed')
-              setIsPickingCoordinates(false);
-              setSelectedPoint(null)
-              setNewPointCoord(null)
-            }}
-            onConfirm={(feature) => {
-              void savePoint(feature);
-            }}
-            onDelete={() => {
-              if (!selectedPoint?.id) return;
-              void deletePoint(selectedPoint.id);
-            }}
-          />
-        </MapContainer>
-        {
-          !isPickingCoordinates
-            ? <SidebarProvider
-              points={points}
-              clickPoint={clickPoint}
-              setSelectedPoint={setSelectedPoint}
-              sidebarIconSrc={FeatureIcon.src ?? FeatureIcon}
-              setIsPickingCoordinates={setIsPickingCoordinates}
-              defaultPoint={empty_point}
-            />
-            : null
-        }
-      </>
-    );
+            setSelectedPoint((currentPoint) => ({
+              ...(currentPoint ?? { ...emptyPoint }),
+              geometry: {
+                type: "Point",
+                coordinates: geoJsonCoordinates,
+              },
+            }));
+            setNewPointCoord(coordinates);
+            setIsPickingCoordinates(false);
+            toast.success("Coordinates selected.");
+          }}
+          isModalOpen={isModalOpen}
+          setPosition={setPosition}
+          setZoom={setZoom}
+        />
+        <PointHandler
+          onChangeCoordinates={startCoordinatePicking}
+          updateCoordinates={updateCoordinates}
+          onChangeDetails={updateDraftField}
+          selectedPoint={selectedPoint}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsPickingCoordinates(false);
+            setSelectedPoint(null);
+            setNewPointCoord(null);
+          }}
+          onConfirm={(feature) => {
+            void savePoint(feature);
+          }}
+          onDelete={() => {
+            if (!selectedPoint?.id) return;
+            void deletePoint(selectedPoint.id);
+          }}
+        />
+      </MapContainer>
+      {!isPickingCoordinates ? (
+        <SidebarProvider
+          points={points}
+          clickPoint={clickPoint}
+          setSelectedPoint={setSelectedPoint}
+          sidebarIconSrc={FeatureIcon.src ?? FeatureIcon}
+          setIsPickingCoordinates={setIsPickingCoordinates}
+          defaultPoint={emptyPoint}
+        />
+      ) : null}
+    </>
+  );
 }
 
-function ChangeView({ position, zoom }: { position: [number, number], zoom: number }) {
+function ChangeView({
+  position,
+  zoom,
+}: {
+  position: LeafletCoordinates;
+  zoom: number;
+}) {
   const map = useMap();
-  useEffect(() => { map.flyTo(position, map.getZoom()) }, [position, map]);
-  useEffect(() => { map.setZoom(zoom) }, [zoom, map]);
+
+  useEffect(() => {
+    map.flyTo(position, map.getZoom());
+  }, [position, map]);
+
+  useEffect(() => {
+    map.setZoom(zoom);
+  }, [zoom, map]);
+
   return null;
 }
 
@@ -240,15 +266,16 @@ function MapEventsHandler({
   isModalOpen,
 }: {
   setZoom: Dispatch<SetStateAction<number>>;
-  setPosition: (coordinates: [number, number]) => void;
-  onPickCoordinates: (coordinates: [number, number]) => void;
-  isModalOpen: boolean
+  setPosition: (coordinates: LeafletCoordinates) => void;
+  onPickCoordinates: (coordinates: LeafletCoordinates) => void;
+  isModalOpen: boolean;
 }) {
   const map = useMapEvents({
     dblclick(event) {
       if (!isModalOpen) {
-        onPickCoordinates([event.latlng.lat, event.latlng.lng]);
-        setPosition([event.latlng.lat, event.latlng.lng])
+        const coordinates: LeafletCoordinates = [event.latlng.lat, event.latlng.lng];
+        onPickCoordinates(coordinates);
+        setPosition(coordinates);
       }
     },
     zoomend() {
@@ -277,5 +304,5 @@ function ZoomHandler({ setZoom }: { setZoom: Dispatch<SetStateAction<number>> })
         <ZoomOut size={20} />
       </button>
     </div>
-  )
+  );
 }

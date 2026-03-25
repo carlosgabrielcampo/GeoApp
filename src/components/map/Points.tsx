@@ -1,45 +1,45 @@
-import { Marker } from "react-leaflet"
+import { Marker } from "react-leaflet";
 
-import { PointsProps, PointInterface } from "@/types/points"
+import { PointInterface, PointsProps } from "@/types/points";
+import { toLeafletCoordinates } from "@/types/geojson";
 
+export default function PointsRenderer({
+  points,
+  iconByType,
+  clickPoint,
+  newPoint,
+}: PointsProps) {
+  return (
+    <>
+      {points?.length
+        ? points.map(({ id, properties, type, geometry }) => {
+            if (!id) {
+              return null;
+            }
 
-export default function PointsRenderer({ points, iconByType, clickPoint, newPoint }: PointsProps) {
-
-    return <>
-        {
-            points?.length && points
-                .map(([keyValue, { properties, type, geometry }]) => {
-                    return (
-                        <Point
-                            key={keyValue}
-                            coordinates={geometry.coordinates}
-                            icon={iconByType[type]}
-                            name={properties.name}
-                            description={properties.description}
-                            eventHandlers={{ click: () => clickPoint({ id: keyValue, properties, type, geometry }) }}
-                        />
-                    )
-                })
-        }
-        {
-            newPoint 
-            ? <Point
-                key={'New Point'}
-                coordinates={newPoint}
-                icon={iconByType['Feature']}
-            /> 
-            : null
-        }
+            return (
+              <Point
+                key={id}
+                coordinates={toLeafletCoordinates(geometry.coordinates)}
+                icon={iconByType[type]}
+                name={properties.name}
+                description={properties.description}
+                eventHandlers={{ click: () => clickPoint({ id, properties, type, geometry }) }}
+              />
+            );
+          })
+        : null}
+      {newPoint ? (
+        <Point
+          key="New Point"
+          coordinates={newPoint}
+          icon={iconByType.Feature}
+        />
+      ) : null}
     </>
+  );
 }
-
 
 function Point({ coordinates, icon, eventHandlers }: PointInterface) {
-    return <Marker
-        position={coordinates}
-        icon={icon}
-        eventHandlers={eventHandlers}
-    >
-    </Marker>
+  return <Marker position={coordinates} icon={icon} eventHandlers={eventHandlers} />;
 }
-

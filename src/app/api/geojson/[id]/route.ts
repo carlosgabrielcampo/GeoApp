@@ -1,60 +1,95 @@
-import { GetById, Put, DeleteById } from "@/database/db";
-import { DataFormat } from "@/types/geojson";
+import {
+  deleteFeatureById,
+  getFeatureById,
+  updateFeatureById,
+} from "@/database/db";
+import { validateGeoJsonFeature } from "@/types/geojson";
 import { NextResponse } from "next/server";
 
 export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ id: string }> }
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
-        const { id } = await params;
-        return NextResponse.json(GetById(id));
-    } catch {
-        return NextResponse.json(
-            { error: "Failed to get features" },
-            { status: 500 }
-        );
+  try {
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json({ message: "Id not informed." }, { status: 400 });
     }
+
+    const feature = getFeatureById(id);
+
+    if (!feature) {
+      return NextResponse.json({ message: "Register not found." }, { status: 404 });
+    }
+
+    return NextResponse.json(feature, { status: 200 });
+  } catch {
+    return NextResponse.json(
+      { message: "Failed to get feature." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(
-    request: Request, 
-    { params }: { params: Promise<{ id: string }> }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
-        const { id } = await params;
-        const body = await request.json();
-        if (!body.type || !body.geometry || !body.properties) {
-            return NextResponse.json(
-                { error: "Invalid JSON format" },
-                { status: 400 }
-            );
-        }
-        const updatedFeature: DataFormat = {
-            type: body.type,
-            geometry: body.geometry,
-            properties: body.properties,
-        };
-        return NextResponse.json(Put(id, updatedFeature));
-    } catch {
-        return NextResponse.json(
-            { error: "Failed to update feature" },
-            { status: 500 }
-        );
+  try {
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json({ message: "Id not informed." }, { status: 400 });
     }
+
+    const body = await request.json();
+    const validation = validateGeoJsonFeature(body);
+
+    if (!validation.valid) {
+      return NextResponse.json({ message: validation.message }, { status: 400 });
+    }
+
+    const feature = updateFeatureById(id, validation.feature);
+
+    if (!feature) {
+      return NextResponse.json({ message: "Register not found." }, { status: 404 });
+    }
+
+    return NextResponse.json(feature, { status: 200 });
+  } catch {
+    return NextResponse.json(
+      { message: "Failed to update feature." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(
-    request: Request,
-    { params }: { params: Promise<{ id: string }> }
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
-        const { id } = await params;
-        return NextResponse.json(DeleteById(id));
-    } catch {
-        return NextResponse.json(
-            { error: "Failed to delete feature" },
-            { status: 500 }
-        );
+  try {
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json({ message: "Id not informed." }, { status: 400 });
     }
+
+    const deleted = deleteFeatureById(id);
+
+    if (!deleted) {
+      return NextResponse.json(
+        { message: "Register does not exist." },
+        { status: 404 }
+      );
+    }
+
+    return new NextResponse(null, { status: 204 });
+  } catch {
+    return NextResponse.json(
+      { message: "Failed to delete feature." },
+      { status: 500 }
+    );
+  }
 }

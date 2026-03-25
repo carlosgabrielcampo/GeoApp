@@ -64,7 +64,10 @@ export default function PointHandler({
     onConfirm(featurePreview);
   };
 
-  const coordinates = selectedPoint?.geometry.coordinates
+  const coordinates = selectedPoint?.geometry.coordinates;
+  const hasValidCoordinates =
+    coordinates !== undefined &&
+    coordinates.every((value) => Number.isFinite(value));
 
   return (
     <div
@@ -96,20 +99,25 @@ export default function PointHandler({
           <Select options={['Feature']} disabled />
 
           <div className="flex flex-col gap-2 text-sm text-slate-700 w-[100%]">
-            <Label value={<p>Coordinates</p>} styleType="default" />
+            <Label value={<p>Coordinates (longitude, latitude)</p>} styleType="default" />
             <div className="flex justify-center items-center gap-1 ]">
+              
               <Input
                 styleType="default"
                 type={"number"}
                 width={"44%"}
-                onchange={({ target: { value } }) => updateCoordinates([Number(value), Number(coordinates?.[1])])}
+                onchange={({ target: { value } }) =>
+                  updateCoordinates([Number(value), coordinates?.[1] ?? 0])
+                }
                 value={coordinates ? `${coordinates[0]}` : "No coordinates selected"}
               />
               <Input
                 styleType="default"
                 type={"number"}
                 width={"44%"}
-                onchange={({ target: { value } }) => updateCoordinates([Number(coordinates?.[0]), Number(value)])}
+                onchange={({ target: { value } }) =>
+                  updateCoordinates([coordinates?.[0] ?? 0, Number(value)])
+                }
                 value={coordinates ? `${coordinates[1]}` : "No coordinates selected"}
               />
               <Button
@@ -162,7 +170,7 @@ export default function PointHandler({
               </Button>
             ) : null}
             <Button
-              disabled={!selectedPoint?.geometry?.coordinates?.[0] || !selectedPoint?.geometry?.coordinates?.[1]}
+              disabled={!hasValidCoordinates}
               styleType="action"
               type="submit"
             >
@@ -174,4 +182,3 @@ export default function PointHandler({
     </div>
   );
 }
-

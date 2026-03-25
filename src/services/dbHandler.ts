@@ -1,14 +1,19 @@
-import { DataFormat } from "@/types/geojson";
-import { ApiEnvelope } from "@/types/database";
+import { ApiMessage } from "@/types/database";
+import {
+  DataFormat,
+  FeatureCollection,
+  GeoJsonCoordinates,
+} from "@/types/geojson";
 
 const GEOJSON_API = "/api/geojson";
+
 type CreateFeatureInput = {
-  coordinates: [number, number];
+  coordinates: GeoJsonCoordinates;
   name?: string;
   description?: string;
 };
 
-async function request<T>(input: string, init?: RequestInit): Promise<ApiEnvelope<T>> {
+async function request<T>(input: string, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
     headers: {
       "Content-Type": "application/json",
@@ -17,41 +22,51 @@ async function request<T>(input: string, init?: RequestInit): Promise<ApiEnvelop
     ...init,
   });
 
-  const data = (await response.json()) as ApiEnvelope<T>;
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const data = (await response.json()) as T | ApiMessage;
 
   if (!response.ok) {
     throw new Error(
-      "json" in data && data.json && typeof data.json === "object" && "message" in data.json
-        ? data.json.message
+      typeof data === "object" &&
+        data !== null &&
+        "message" in data &&
+        typeof data.message === "string"
+        ? data.message
         : `Request failed with status ${response.status}`
     );
   }
 
-  return data;
+  return data as T;
 }
 
 export function getAllFeatures() {
-  return request<Record<string, DataFormat>>(GEOJSON_API);
+  return request<FeatureCollection>(GEOJSON_API);
 }
 
 export function getFeatureById(id: string) {
   return request<DataFormat>(`${GEOJSON_API}/${id}`);
 }
 
-export function createFeature(
-  { coordinates, name = "", description = "" }: CreateFeatureInput
-) {
-  const feature = {
-    type: 'Feature',
+export function createFeature({
+  coordinates,
+  name = "",
+  description = "",
+}: CreateFeatureInput) {
+  const feature: DataFormat = {
+    type: "Feature",
     geometry: {
       type: "Point",
       coordinates,
     },
     properties: {
-      name: name || '' ,
-      description: description || '',
+      name,
+      description,
     },
-  }
+  };
+
   return request<DataFormat>(GEOJSON_API, {
     method: "POST",
     body: JSON.stringify(feature),
@@ -66,7 +81,7 @@ export function updateFeature(id: string, feature: DataFormat) {
 }
 
 export function deleteFeature(id: string) {
-  return request<{ message: string }>(`${GEOJSON_API}/${id}`, {
+  return request<void>(`${GEOJSON_API}/${id}`, {
     method: "DELETE",
   });
 }

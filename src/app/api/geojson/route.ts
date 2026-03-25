@@ -1,39 +1,42 @@
-import { GetAll, Post } from "@/database/db";
-import { DataFormat } from "@/types/geojson";
+import { createFeature, getAllFeatures } from "@/database/db";
+import { validateGeoJsonFeature } from "@/types/geojson";
 import { NextResponse } from "next/server";
 import { v4 as uuid } from "uuid";
 
 export async function GET() {
-    try {
-        return NextResponse.json(GetAll());
-    } catch {
-        return NextResponse.json(
-            { error: "Failed to get all features" },
-            { status: 500 }
-        );
-    }
+  try {
+    return NextResponse.json(getAllFeatures(), { status: 200 });
+  } catch {
+    return NextResponse.json(
+      { message: "Failed to get all features." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
-    try {
-        const body = await request.json();
-        if (!body.type || !body.geometry || !body.properties) {
-            return NextResponse.json(
-                { error: "Invalid JSON format" },
-                { status: 400 }
-            );
-        }
-        const newFeature: DataFormat = {
-            type: body.type,
-            geometry: body.geometry,
-            properties: body.properties,
-        };
-        const id = uuid()
-        return NextResponse.json(Post(id, newFeature));
-    } catch {
-        return NextResponse.json(
-            { error: "Failed to create feature" },
-            { status: 500 }
-        );
+  try {
+    const body = await request.json();
+    const validation = validateGeoJsonFeature(body);
+
+    if (!validation.valid) {
+      return NextResponse.json({ message: validation.message }, { status: 400 });
     }
+
+    const feature = createFeature(uuid(), validation.feature);
+
+    if (!feature) {
+      return NextResponse.json(
+        { message: "Failed to create feature because the id already exists." },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json(feature, { status: 201 });
+  } catch {
+    return NextResponse.json(
+      { message: "Failed to create feature." },
+      { status: 500 }
+    );
+  }
 }
