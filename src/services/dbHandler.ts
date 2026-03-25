@@ -1,4 +1,3 @@
-import { ApiMessage } from "@/types/database";
 import {
   DataFormat,
   FeatureCollection,
@@ -6,6 +5,10 @@ import {
 } from "@/types/geojson";
 
 const GEOJSON_API = "/api/geojson";
+
+export type ApiMessage = {
+  message: string;
+};
 
 type CreateFeatureInput = {
   coordinates: GeoJsonCoordinates;

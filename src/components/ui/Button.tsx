@@ -1,13 +1,4 @@
-import { MouseEventHandler, ReactElement } from "react";
-
-interface ButtonInterface {
-    onclick?: MouseEventHandler<HTMLButtonElement>,
-    styleType: "default" | "warning" | "action" | "round",
-    type: "submit" | "reset" | "button" | undefined,
-    children: ReactElement<string>
-    width?: string
-    disabled?: boolean
-}
+import { ButtonInterface } from "@/types/ui"
 
 export default function Button(
   {

@@ -1,13 +1,4 @@
-import { ChangeEventHandler } from "react";
-
-interface InputInterface {
-    styleType: 'default',
-    value: string | number, 
-    onchange: ChangeEventHandler<HTMLInputElement>, 
-    type: string, 
-    placeholder?: string, 
-    width?: string
-}
+import { InputInterface } from "@/types/ui"
 
 export default function Input(
   { value, onchange, type, placeholder, width, styleType }: InputInterface

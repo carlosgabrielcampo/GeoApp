@@ -18,7 +18,6 @@ export type PointSelection = { id: string } & DataFormat;
 
 export type PointsProps = {
   points: DataFormat[];
-  iconByType: Record<DataFormat["type"], Icon<IconOptions>>;
   clickPoint: (selected: PointSelection) => void;
   newPoint?: LeafletCoordinates | null;
 };

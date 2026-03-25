@@ -1,11 +1,12 @@
 "use client";
 
-import { DataFormat } from "@/types/geojson";
-import { EditablePoint, PointSelection } from "@/types/points";
-import { ChevronLeft, ChevronRight, MapPinned, Plus } from "lucide-react";
-import Image from "next/image";
 import { Dispatch, MouseEventHandler, SetStateAction, useState } from "react";
+import { ChevronLeft, ChevronRight, MapPinned, Plus } from "lucide-react";
+import { EditablePoint, PointSelection } from "@/types/points";
+import { DataFormat } from "@/types/geojson";
+import { emptyPoint } from "../map/constants";
 import { Button, Text } from "../ui";
+import Image from "next/image";
 
 type SidebarProviderProps = {
   points: DataFormat[];
@@ -13,35 +14,32 @@ type SidebarProviderProps = {
   clickPoint: (selected: PointSelection) => void;
   setIsPickingCoordinates: (value: boolean) => void;
   setSelectedPoint: Dispatch<SetStateAction<EditablePoint | null>>;
-  defaultPoint: EditablePoint;
 };
 
 type SidebarItemsProps = {
-  onclick: MouseEventHandler;
-  iconSrc: string;
   name: string;
+  iconSrc: string;
   description: string;
+  onclick: MouseEventHandler;
 };
 
 export default function SidebarProvider({
   points,
-  sidebarIconSrc,
   clickPoint,
-  setIsPickingCoordinates,
+  sidebarIconSrc,
   setSelectedPoint,
-  defaultPoint,
+  setIsPickingCoordinates,
 }: SidebarProviderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
   const openCreatePoint = () => {
     setIsPickingCoordinates(false);
     setSelectedPoint({
-      ...defaultPoint,
+      ...emptyPoint,
       properties: {
-        ...defaultPoint.properties,
+        ...emptyPoint.properties,
       },
       geometry: {
-        ...defaultPoint.geometry,
+        ...emptyPoint.geometry,
       },
     });
   };
@@ -66,7 +64,7 @@ export default function SidebarProvider({
                 <Text value="Points" styleType="title" />
                 <Text
                   value={`${points.length} mapped location${points.length === 1 ? "" : "s"}`}
-                  styleType="subtitle"
+                  styleType="sm-muted"
                 />
               </div>
             </div>
@@ -106,7 +104,7 @@ export default function SidebarProvider({
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-                No points yet. Create one from the button above.
+                <Text value="No points yet. Create one from the button above." styleType="sm-muted"/>  
               </div>
             )}
           </div>

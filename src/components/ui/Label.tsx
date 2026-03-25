@@ -1,10 +1,5 @@
-import { ReactElement } from "react";
-
-export default function Label(
-    { value, styleType }:
-        { value: ReactElement, styleType: "default" }
-
-) {
+import { LabelInterface } from "@/types/ui"
+export default function Label({value, styleType }: LabelInterface ) {
     const labelStyle = {
         'default': "flex flex-col gap-1 text-sm text-slate-700"
     }

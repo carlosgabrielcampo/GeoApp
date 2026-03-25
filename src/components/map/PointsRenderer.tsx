@@ -2,20 +2,18 @@ import { Marker } from "react-leaflet";
 
 import { PointInterface, PointsProps } from "@/types/points";
 import { toLeafletCoordinates } from "@/types/geojson";
+import { iconByType } from "./constants";
 
 export default function PointsRenderer({
-  points,
-  iconByType,
   clickPoint,
+  points,
   newPoint,
 }: PointsProps) {
   return (
     <>
       {points?.length
         ? points.map(({ id, properties, type, geometry }) => {
-            if (!id) {
-              return null;
-            }
+            if (!id) { return null; }
 
             return (
               <Point

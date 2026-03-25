@@ -1,33 +1,28 @@
 "use client";
 
-import { MapContainer, TileLayer } from "react-leaflet";
-import FeatureIcon from "@/assets/icons/pino-de-localizacao.ico";
 import { DataFormat, LeafletCoordinates, toLeafletCoordinates } from "@/types/geojson";
-import { useState } from "react";
-import PointsRenderer from "./Points";
+import FeatureIcon from "@/assets/icons/pino-de-localizacao.ico";
 import LoadingScreen from "../providers/LoadingScreenProvider";
-import SidebarProvider from "../providers/SidebarProvider";
-import L, { Icon, IconOptions } from "leaflet";
-import { EditablePoint } from "@/types/points";
-import PointHandler from "../modal/PointHandler";
-import { ZoomHandler } from "./controls/ZoomHandler";
 import { MapEventsHandler } from "./controls/MapEventsHandler";
-import { ChangeView } from "./controls/ChangeView";
+import SidebarProvider from "../providers/SidebarProvider";
+import { MapContainer, TileLayer } from "react-leaflet";
 import { usePointEditor } from "./hooks/usePointEditor";
+import { ZoomHandler } from "./controls/ZoomHandler";
 import { useMapPoints } from "./hooks/useMapPoints";
+import { ChangeView } from "./controls/ChangeView";
+import PointHandler from "../modal/PointHandler";
+import PointsRenderer from "./PointsRenderer";
+import { useState } from "react";
+import { emptyPoint } from "./constants";
 
 export default function DynamicMap() {
   const [position, setPosition] = useState<LeafletCoordinates>([0, 0]);
   const [zoom, setZoom] = useState(8);
-
+  const [zoomPressed, setZoomPressed] = useState(false)
   const minZoom = 2;
   const maxZoom = 18;
   const outerBounds = [[90, 180], [-90, -180]] as [[number, number], [number, number]];
-  const emptyPoint: EditablePoint = {
-    type: "Feature",
-    geometry: { type: "Point" },
-    properties: { name: "", description: "" },
-  };
+
   const {
     clickPoint,
     isModalOpen,
@@ -45,11 +40,11 @@ export default function DynamicMap() {
     defaultPoint: emptyPoint,
     setPosition,
   });
+
   const { deletePoint, isLoading, points, savePoint } = useMapPoints();
-  const mapPosition =
-    position.every((value) => value === 0) && points[0]
-      ? toLeafletCoordinates(points[0].geometry.coordinates)
-      : position;
+  const mapPosition = position.every((value) => value === 0) && points[0]
+    ? toLeafletCoordinates(points[0].geometry.coordinates)
+    : position;
 
   const handleSavePoint = async (feature: DataFormat) => {
     const didSave = await savePoint(feature, selectedPoint?.id);
@@ -62,30 +57,23 @@ export default function DynamicMap() {
     if (didDelete) { resetEditor(); }
   };
 
-  const iconByType: Record<DataFormat["type"], Icon<IconOptions>> = {
-    Feature: L.icon({
-      iconUrl: FeatureIcon.src ?? FeatureIcon,
-      iconSize: [32, 32],
-    }),
-  };
-
   return isLoading ? (
     <LoadingScreen message="Loading locations..." />
   ) : (
     <>
       <MapContainer
         zoom={zoom}
-        center={mapPosition}
         minZoom={minZoom}
         maxZoom={maxZoom}
         zoomControl={false}
+        center={mapPosition}
         maxBounds={outerBounds}
         doubleClickZoom={false}
         className="h-[100vh] w-[100vw]"
       >
         <ChangeView
-          position={mapPosition}
           zoom={zoom}
+          position={mapPosition}
         />
         <TileLayer
           attribution=""
@@ -93,30 +81,26 @@ export default function DynamicMap() {
         />
         <PointsRenderer
           points={points}
-          iconByType={iconByType}
           clickPoint={clickPoint}
           newPoint={newPointCoord}
         />
-        <ZoomHandler setZoom={setZoom} />
+        <ZoomHandler setZoom={setZoom} setZoomPressed={setZoomPressed} />
         <MapEventsHandler
-          onPickCoordinates={selectCoordinates}
+          setZoom={setZoom}
+          zoomPressed={zoomPressed}
           isModalOpen={isModalOpen}
           setPosition={setPosition}
-          setZoom={setZoom}
+          onPickCoordinates={selectCoordinates}
         />
         <PointHandler
-          onChangeCoordinates={startCoordinatePicking}
-          updateCoordinates={updateCoordinates}
-          onChangeDetails={updateDraftField}
-          selectedPoint={selectedPoint}
           isOpen={isModalOpen}
           onClose={resetEditor}
-          onConfirm={(feature) => {
-            void handleSavePoint(feature);
-          }}
-          onDelete={() => {
-            void handleDeletePoint();
-          }}
+          selectedPoint={selectedPoint}
+          onChangeDetails={updateDraftField}
+          updateCoordinates={updateCoordinates}
+          onChangeCoordinates={startCoordinatePicking}
+          onDelete={() => { void handleDeletePoint(); }}
+          onConfirm={(feature) => { void handleSavePoint(feature); }}
         />
       </MapContainer>
       {!isPickingCoordinates ? (
@@ -126,7 +110,6 @@ export default function DynamicMap() {
           setSelectedPoint={setSelectedPoint}
           sidebarIconSrc={FeatureIcon.src ?? FeatureIcon}
           setIsPickingCoordinates={setIsPickingCoordinates}
-          defaultPoint={emptyPoint}
         />
       ) : null}
     </>

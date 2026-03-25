@@ -1,5 +1,6 @@
-import { DatabaseFormat } from "@/types/database";
 import { DataFormat, FeatureCollection } from "@/types/geojson";
+export type DatabaseFormat = Record<string, DataFormat>;
+
 
 const features: DatabaseFormat = {
   "a557be5d-820c-408d-b96b-4cea113fca51": {

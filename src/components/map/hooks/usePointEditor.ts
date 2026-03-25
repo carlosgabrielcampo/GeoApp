@@ -1,6 +1,6 @@
 import { DataFormat, LeafletCoordinates, toGeoJsonCoordinates, toLeafletCoordinates } from "@/types/geojson";
-import { EditablePoint, PointSelection } from "@/types/points";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { EditablePoint, PointSelection } from "@/types/points";
 import { toast } from "react-toastify";
 
 type UsePointEditorParams = {

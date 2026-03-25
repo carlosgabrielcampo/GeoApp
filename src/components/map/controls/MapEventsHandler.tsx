@@ -4,18 +4,21 @@ import { useMapEvents } from "react-leaflet";
 
 export function MapEventsHandler({
   setZoom,
-  setPosition,
-  onPickCoordinates,
   isModalOpen,
+  setPosition,
+  zoomPressed,
+  onPickCoordinates,
 }: {
+  isModalOpen: boolean;
+  zoomPressed: boolean;
   setZoom: Dispatch<SetStateAction<number>>;
   setPosition: (coordinates: LeafletCoordinates) => void;
   onPickCoordinates: (coordinates: LeafletCoordinates) => void;
-  isModalOpen: boolean;
 }) {
   const map = useMapEvents({
     dblclick(event) {
-      if (!isModalOpen) {
+      console.log('zoomPressed', zoomPressed)
+      if (!isModalOpen && !zoomPressed) {
         const coordinates: LeafletCoordinates = [event.latlng.lat, event.latlng.lng];
         onPickCoordinates(coordinates);
         setPosition(coordinates);

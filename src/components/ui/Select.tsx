@@ -1,8 +1,7 @@
-import { ChangeEventHandler } from "react";
+import { SelectInterface } from "@/types/ui";
 
 export default function Select(
-  { options, disabled, onchange }:
-    { options: string[], disabled?: true, onchange?: ChangeEventHandler<HTMLSelectElement> }
+  { options, disabled, onchange }: SelectInterface
 ){
   return <>
     <select

@@ -82,7 +82,7 @@ export default function PointHandler({
             />
             <Text
               value={isEditing ? "Update the GeoJSON point." : "Create a new GeoJSON point."}
-              styleType="subtitle"
+              styleType="sm-muted"
             />
           </div>
           <Button
