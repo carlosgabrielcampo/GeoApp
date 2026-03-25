@@ -11,6 +11,7 @@ import L, { Icon, IconOptions } from 'leaflet'
 import { EditablePoint, PointSelection } from "@/types/points";
 import PointInsert from "../modal/pointInsert";
 import { toast } from "react-toastify";
+import { ZoomIn, ZoomOut } from "lucide-react";
 
 export default function DynamicMap() {
   const [selectedPoint, setSelectedPoint] = useState<EditablePoint | null>(null)
@@ -19,21 +20,15 @@ export default function DynamicMap() {
   const [position, setPosition] = useState<[number, number]>([0, 0])
   const [points, setPoints] = useState<[string, DataFormat][]>([]);
   const [isLoading, setIsLoading] = useState(false)
-  const [zoom, setZoom] = useState(5)
+  const [zoom, setZoom] = useState(8)
 
   const minZoom = 2
   const maxZoom = 18
   const outerBounds = [[90, 180], [-90, -180]] as [[number, number], [number, number]];
-
-  const EMPTY_POINT: EditablePoint = {
+  const empty_point: EditablePoint = {
     type: "Feature",
-    geometry: {
-      type: "Point",
-    },
-    properties: {
-      name: "",
-      description: "",
-    },
+    geometry: { type: "Point" },
+    properties: { name: "", description: "" },
   };
 
   const load = useCallback(async () => {
@@ -59,13 +54,20 @@ export default function DynamicMap() {
     setPoints(filteredPoints);
   }, []);
 
-  const iconByType: Record<DataFormat["type"], Icon<IconOptions>> = {
-    Feature: L.icon({
-      iconUrl: FeatureIcon.src ?? FeatureIcon,
-      iconSize: [32, 32],
-    }),
-  };
-  const isModalOpen = Boolean(selectedPoint) && !isPickingCoordinates;
+  useEffect(() => {
+    const loadGeojson = async () => {
+      try {
+        setIsLoading(true);
+        await load();
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadGeojson();
+  }, [load]);
 
   const deletePoint = async (id: string) => {
     try {
@@ -79,7 +81,6 @@ export default function DynamicMap() {
       toast.error("Failed to delete point.");
     }
   };
-
   const savePoint = async (feature: DataFormat) => {
     try {
       if (selectedPoint?.id) {
@@ -102,17 +103,13 @@ export default function DynamicMap() {
       toast.error("Failed to save point.");
     }
   };
-
   const startCoordinatePicking = () => {
     setIsPickingCoordinates(true);
     toast.info("Double click the map to choose coordinates.");
   };
-
   const updateDraftField = (field: "name" | "description", value: string) => {
     setSelectedPoint((currentPoint) => {
-      if (!currentPoint) {
-        return currentPoint;
-      }
+      if (!currentPoint) return currentPoint;
 
       return {
         ...currentPoint,
@@ -123,14 +120,9 @@ export default function DynamicMap() {
       };
     });
   };
-
-
   const updateCoordinates = (value: [number, number]) => {
-    console.log(value)
     setSelectedPoint((currentPoint) => {
-      if (!currentPoint) {
-        return currentPoint;
-      }
+      if (!currentPoint) return currentPoint;
 
       return {
         ...currentPoint,
@@ -141,28 +133,20 @@ export default function DynamicMap() {
       };
     });
   };
-
-
-  useEffect(() => {
-    const loadGeojson = async () => {
-      try {
-        setIsLoading(true);
-        await load();
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadGeojson();
-  }, [load]);
-
   const clickPoint = (selected: PointSelection) => {
     setIsPickingCoordinates(false);
     setPosition(selected.geometry.coordinates)
     setSelectedPoint(selected)
   };
+
+  const iconByType: Record<DataFormat["type"], Icon<IconOptions>> = {
+    Feature: L.icon({
+      iconUrl: FeatureIcon.src ?? FeatureIcon,
+      iconSize: [32, 32],
+    }),
+  };
+  const isModalOpen = Boolean(selectedPoint) && !isPickingCoordinates;
+
 
   return isLoading
     ? <LoadingScreen message="Loading locations..." />
@@ -178,23 +162,14 @@ export default function DynamicMap() {
           doubleClickZoom={false}
           className="h-[100vh] w-[100vw]"
         >
-          <ChangeView
-            position={position}
-          />
-          <TileLayer
-            attribution=""
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <PointsRenderer
-            points={points}
-            iconByType={iconByType}
-            clickPoint={clickPoint}
-            newPoint={newPointCoord}
-          />
+          <ChangeView position={position} zoom={zoom} />
+          <TileLayer attribution="" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <PointsRenderer points={points} iconByType={iconByType} clickPoint={clickPoint} newPoint={newPointCoord} />
+          <ZoomHandler setZoom={setZoom} />
           <MapEventsHandler
             onPickCoordinates={(coordinates) => {
               setSelectedPoint((currentPoint) => ({
-                ...(currentPoint ?? { ...EMPTY_POINT }),
+                ...(currentPoint ?? { ...empty_point }),
                 geometry: {
                   type: "Point",
                   coordinates,
@@ -205,8 +180,9 @@ export default function DynamicMap() {
               setIsPickingCoordinates(false);
               toast.success("Coordinates selected.");
             }}
-            setZoom={setZoom}
+            isModalOpen={isModalOpen}
             setPosition={setPosition}
+            setZoom={setZoom}
           />
           <PointInsert
             onChangeCoordinates={startCoordinatePicking}
@@ -228,23 +204,26 @@ export default function DynamicMap() {
             }}
           />
         </MapContainer>
-        <SidebarProvider
-          points={points}
-          clickPoint={clickPoint}
-          EMPTY_POINT={EMPTY_POINT}
-          setSelectedPoint={setSelectedPoint}
-          sidebarIconSrc={FeatureIcon.src ?? FeatureIcon}
-          setIsPickingCoordinates={setIsPickingCoordinates}
-        />
+        {
+          !isPickingCoordinates
+            ? <SidebarProvider
+              points={points}
+              clickPoint={clickPoint}
+              setSelectedPoint={setSelectedPoint}
+              sidebarIconSrc={FeatureIcon.src ?? FeatureIcon}
+              setIsPickingCoordinates={setIsPickingCoordinates}
+              defaultPoint={empty_point}
+            />
+            : null
+        }
       </>
     );
 }
 
-function ChangeView({ position }: { position: [number, number] }) {
+function ChangeView({ position, zoom }: { position: [number, number], zoom: number }) {
   const map = useMap();
-  useEffect(() => {
-    map.flyTo(position, map.getZoom());
-  }, [position, map]);
+  useEffect(() => { map.flyTo(position, map.getZoom()) }, [position, map]);
+  useEffect(() => { map.setZoom(zoom) }, [zoom, map]);
   return null;
 }
 
@@ -252,15 +231,19 @@ function MapEventsHandler({
   setZoom,
   setPosition,
   onPickCoordinates,
+  isModalOpen,
 }: {
   setZoom: Dispatch<SetStateAction<number>>;
   setPosition: (coordinates: [number, number]) => void;
   onPickCoordinates: (coordinates: [number, number]) => void;
+  isModalOpen: boolean
 }) {
   const map = useMapEvents({
     dblclick(event) {
-      onPickCoordinates([event.latlng.lat, event.latlng.lng]);
-      setPosition([event.latlng.lat, event.latlng.lng])
+      if (!isModalOpen) {
+        onPickCoordinates([event.latlng.lat, event.latlng.lng]);
+        setPosition([event.latlng.lat, event.latlng.lng])
+      }
     },
     zoomend() {
       setZoom(map.getZoom());
@@ -268,4 +251,25 @@ function MapEventsHandler({
   });
 
   return null;
+}
+
+function ZoomHandler({ setZoom }: { setZoom: (prev: number) => void }) {
+  return (
+    <div className="pointer-events-auto absolute right-4 bottom-4 z-[400] gap-2 flex max-h-[calc(100vh-2rem)]">
+      <button
+        type="button"
+        onClick={() => setZoom((prev) => prev += 1)}
+        className="mt-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg transition hover:bg-slate-50"
+      >
+        <ZoomIn size={20} />
+      </button>
+      <button
+        type="button"
+        onClick={() => setZoom((prev) => prev -= 1)}
+        className="mt-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg transition hover:bg-slate-50"
+      >
+        <ZoomOut size={20} />
+      </button>
+    </div>
+  )
 }

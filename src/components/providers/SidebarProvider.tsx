@@ -2,7 +2,7 @@
 
 import { DataFormat } from "@/types/geojson";
 import { EditablePoint, PointSelection } from "@/types/points";
-import { MapPinned, ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { MapPinned, ChevronLeft, ChevronRight, Plus, ZoomIn } from "lucide-react"
 import Image from "next/image"
 import { Dispatch, SetStateAction, useState } from "react";
 
@@ -12,28 +12,28 @@ type SidebarProviderProps = {
     clickPoint: (selected: PointSelection) => void;
     setIsPickingCoordinates: (value: boolean) => void;
     setSelectedPoint: Dispatch<SetStateAction<EditablePoint | null>>;
-    EMPTY_POINT: EditablePoint;
+    defaultPoint: EditablePoint;
 };
 
-export default function SidebarProvider({ 
-    points, 
-    sidebarIconSrc, 
-    clickPoint, 
-    setIsPickingCoordinates, 
-    setSelectedPoint ,
-    EMPTY_POINT
+export default function SidebarProvider({
+    points,
+    sidebarIconSrc,
+    clickPoint,
+    setIsPickingCoordinates,
+    setSelectedPoint,
+    defaultPoint
 }: SidebarProviderProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    
+
     const openCreatePoint = () => {
         setIsPickingCoordinates(false);
         setSelectedPoint({
-            ...EMPTY_POINT,
+            ...defaultPoint,
             properties: {
-                ...EMPTY_POINT.properties,
+                ...defaultPoint.properties,
             },
             geometry: {
-                ...EMPTY_POINT.geometry,
+                ...defaultPoint.geometry,
             },
         });
     };
@@ -47,7 +47,6 @@ export default function SidebarProvider({
             >
                 {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
             </button>
-
             {isSidebarOpen ? (
                 <div className="ml-3 flex w-[340px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur">
                     <div className="border-b border-slate-200 px-5 py-4">
@@ -111,6 +110,8 @@ export default function SidebarProvider({
                     </div>
                 </div>
             ) : null}
+
+
         </aside>
     )
 }

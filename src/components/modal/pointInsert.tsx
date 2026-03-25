@@ -136,11 +136,11 @@ export default function PointInsert({
             styleType="default"
           />
           <Input
-            styleType="default"
-            type={"number"}
-            onchange={({ target: { value } }) => updateCoordinates([Number(coordinates?.[0]), Number(value)])}
+            type="text"
             value={selectedPoint?.properties.name || ""}
-            placeholder={"Exemplo de Ponto"}
+            styleType="default"
+            onchange={(event) => onChangeDetails("name", event.target.value)}
+            placeholder={"!xemple point"}
           />
           <Label
             value={<p>Description <span className="text-xs text-slate-400">(optional)</span></p>}
@@ -150,7 +150,7 @@ export default function PointInsert({
             value={selectedPoint?.properties.description || ''}
             styleType={'default'}
             onchange={(event) => onChangeDetails("description", event.target.value)}
-            placeholder={"Este e um ponto de exemplo."}
+            placeholder={"This is an exemple point"}
           />
           <div className="flex items-center justify-end gap-3 pt-2">
             {isEditing ? (
