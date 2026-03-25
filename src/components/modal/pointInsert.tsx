@@ -3,13 +3,12 @@
 import { DataFormat } from "@/types/geojson";
 import { FormEvent, useEffect, useMemo } from "react";
 import { PointInsertProps } from "@/types/points";
-import { Copy, Trash2, X } from "lucide-react";
+import { Copy, X } from "lucide-react";
 
 
 export default function PointInsert({
   selectedPoint,
   isOpen,
-  isPickingCoordinates = false,
   onClose,
   onDelete,
   onChangeDetails,
@@ -22,7 +21,6 @@ export default function PointInsert({
     if (!isOpen) {
       return;
     }
-
     const originalOverflow = document.body.style.overflow;
     const originalTouchAction = document.body.style.touchAction;
 
@@ -79,17 +77,17 @@ export default function PointInsert({
               </h2>
               <p className="text-sm text-slate-500">
                 {isEditing
-                  ? "Update the GeoJSON point feature."
-                  : "Start a new GeoJSON point feature."}
+                  ? "Update the GeoJSON point."
+                  : "Create a new GeoJSON point."}
               </p>
             </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg border border-slate-300 p-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-              >
-                <X size={16} />
-              </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-slate-300 p-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              <X size={16} />
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
@@ -107,16 +105,19 @@ export default function PointInsert({
             <div className="flex flex-col gap-2 text-sm text-slate-700">
               <div className="flex items-center justify-between">
                 <span>Coordinates</span>
-
               </div>
-              <div className="flex justify-center items-center gap-1">
-                <div className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-600">
-                  {selectedPoint?.geometry?.coordinates ? `${selectedPoint?.geometry.coordinates[0]}` : "No coordinates selected"}
+              <div className="flex justify-center items-center gap-1 max-w-[40%]]">
+                <div className="rounded-lg border border-slate-300 bg-slate-50  px-3 py-2 font-mono text-xs text-slate-600">
+                  <p className="overflow-hidden">{selectedPoint?.geometry?.coordinates ? `${selectedPoint?.geometry.coordinates[0]}` : "No coordinates selected"}</p>
                 </div>
-                <div className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-600">
-                  {selectedPoint?.geometry?.coordinates ? `${selectedPoint?.geometry.coordinates[1]}` : "No coordinates selected"}
+                <div className="rounded-lg border border-slate-300 max-w-[40%] bg-slate-50 px-3 py-2 font-mono text-xs text-slate-600">
+                  <p className="overflow-hidden">{selectedPoint?.geometry?.coordinates ? `${selectedPoint?.geometry.coordinates[1]}` : "No coordinates selected"}</p>
                 </div>
-                <div className="rounded-lg border border-slate-300  p-2 font-mono text-xs hover:bg-slate-50">
+                <div onClick={() => {
+                  navigator.clipboard.writeText(
+                    JSON.stringify(selectedPoint?.geometry.coordinates || "")
+                  );
+                }} className="rounded-lg border border-slate-300 p-2 font-mono text-xs hover:bg-slate-50">
                   <Copy size={18} />
                 </div>
               </div>
@@ -153,15 +154,15 @@ export default function PointInsert({
               />
             </label>
             <div className="flex items-center justify-end gap-3 pt-2">
-            {isEditing ? (
-              <button
-                type="button"
-                onClick={onDelete}
-                className="rounded-lg border bg-[#ef3840] text-white border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[#ef3840]/90"
-              >
-                Delete
-              </button>
-            ) : null}
+              {isEditing ? (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="rounded-lg border bg-[#ef3840] text-white border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[#ef3840]/90"
+                >
+                  Delete
+                </button>
+              ) : null}
               <button
                 type="submit"
                 disabled={!selectedPoint?.geometry?.coordinates}

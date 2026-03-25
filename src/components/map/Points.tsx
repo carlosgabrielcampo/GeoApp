@@ -3,7 +3,7 @@ import { Marker } from "react-leaflet"
 import { PointsProps, PointInterface } from "@/types/points"
 
 
-export default function PointsRenderer({ points, iconByType, clickPoint }: PointsProps) {
+export default function PointsRenderer({ points, iconByType, clickPoint, newPoint }: PointsProps) {
 
     return <>
         {
@@ -16,17 +16,25 @@ export default function PointsRenderer({ points, iconByType, clickPoint }: Point
                             icon={iconByType[type]}
                             name={properties.name}
                             description={properties.description}
-                            eventHandlers={{ click: () => clickPoint({id: keyValue, properties, type, geometry}) }}
+                            eventHandlers={{ click: () => clickPoint({ id: keyValue, properties, type, geometry }) }}
                         />
                     )
                 })
+        }
+        {
+            newPoint 
+            ? <Point
+                key={'New Point'}
+                coordinates={newPoint}
+                icon={iconByType['Feature']}
+            /> 
+            : null
         }
     </>
 }
 
 
-function Point({ coordinates, icon, eventHandlers }: PointInterface)
-{
+function Point({ coordinates, icon, eventHandlers }: PointInterface) {
     return <Marker
         position={coordinates}
         icon={icon}
@@ -34,3 +42,4 @@ function Point({ coordinates, icon, eventHandlers }: PointInterface)
     >
     </Marker>
 }
+

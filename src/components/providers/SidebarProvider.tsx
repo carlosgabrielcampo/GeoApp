@@ -1,6 +1,7 @@
 "use client";
 
 import { DataFormat } from "@/types/geojson";
+import { EditablePoint, PointSelection } from "@/types/points";
 import { MapPinned, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import Image from "next/image"
 import { Dispatch, SetStateAction, useState } from "react";
@@ -8,31 +9,10 @@ import { Dispatch, SetStateAction, useState } from "react";
 type SidebarProviderProps = {
     points: [string, DataFormat][];
     sidebarIconSrc: string;
-    clickPoint: (selected: { id: string } & DataFormat) => void;
+    clickPoint: (selected: PointSelection) => void;
     setIsPickingCoordinates: (value: boolean) => void;
-    setSelectedPoint: Dispatch<SetStateAction<{
-        id?: string;
-        type: "Feature";
-        geometry: {
-            type: "Point";
-            coordinates?: [number, number];
-        };
-        properties: {
-            name: string;
-            description: string;
-        };
-    } | null>>;
-    EMPTY_POINT: {
-        type: "Feature";
-        geometry: {
-            type: "Point";
-            coordinates?: [number, number];
-        };
-        properties: {
-            name: string;
-            description: string;
-        };
-    };
+    setSelectedPoint: Dispatch<SetStateAction<EditablePoint | null>>;
+    EMPTY_POINT: EditablePoint;
 };
 
 export default function SidebarProvider({ 

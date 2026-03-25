@@ -14,10 +14,13 @@ export type EditablePoint = {
   };
 };
 
+export type PointSelection = { id: string } & DataFormat;
+
 export type PointsProps = {
   points: [string, DataFormat][];
   iconByType: Record<DataFormat["type"], Icon<IconOptions>>;
-  clickPoint: (selected: { id: string; } & DataFormat) => void;
+  clickPoint: (selected: PointSelection) => void;
+  newPoint?: [number, number] | null;
 };
 
 export interface PointInterface {
