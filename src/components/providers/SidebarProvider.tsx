@@ -38,7 +38,7 @@ export default function SidebarProvider({
         });
     };
     return (
-        <aside className="pointer-events-auto absolute left-4 top-4 z-[900] flex max-h-[calc(100vh-2rem)]">
+        <aside className="pointer-events-auto absolute left-4 top-4 z-[400] flex max-h-[calc(100vh-2rem)]">
             <button
                 type="button"
                 onClick={() => setIsSidebarOpen((value) => !value)}

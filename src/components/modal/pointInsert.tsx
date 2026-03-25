@@ -3,8 +3,8 @@ import { DataFormat } from "@/types/geojson";
 import { FormEvent, useEffect, useMemo } from "react";
 import { PointInsertProps } from "@/types/points";
 import { Copy, X } from "lucide-react";
-import { toast } from "react-toastify";
-
+import { copyToclipboard } from "@/util/navigation";
+import { TextArea, Button, Input, Select, Label } from "../ui";
 
 export default function PointInsert({
   selectedPoint,
@@ -68,7 +68,7 @@ export default function PointInsert({
 
   return (
     <div
-      className="absolute left-[0] inset-0 z-[9999] flex  bg-black/40 p-4 touch-none"
+      className="absolute left-[0] inset-0 z-[500] flex  bg-black/40 p-4 touch-none"
     >
       <div className="flex  h-[100%] w-[400px] flex-col rounded-2xl bg-white p-6 shadow-2xl touch-auto">
         <div className="mb-4 flex items-start justify-between">
@@ -92,104 +92,62 @@ export default function PointInsert({
         </div>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm text-slate-700">
-            Type
-            <select
-              value="Feature"
-              disabled
-              className="rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-slate-900"
-            >
-              <option value="Feature">Feature</option>
-            </select>
-          </label>
+          <Label value={<p>Type</p>} styleType="default" />
+          <Select options={['Feature']} disabled />
 
-          <div className="flex flex-col gap-2 text-sm text-slate-700">
-            <div className="flex items-center justify-between">
-              <span>Coordinates</span>
-            </div>
-            <div className="flex justify-center items-center gap-1 max-w-[40%]]">
-              <div className="rounded-lg border border-slate-300 bg-slate-50  px-3 py-2 font-mono text-xs text-slate-600">
-                <input
-                  type="number"
-                  onChange={({ target: { value } }) => updateCoordinates([value, coordinates?.[1]])}
-                  className="overflow-hidden"
-                  value={
-                    coordinates
-                      ? `${coordinates[0]}`
-                      : "No coordinates selected"
-                  } />
-              </div>
-              <div className="overflow-hidden rounded-lg border border-slate-300 max-w-[40%] bg-slate-50 px-3 py-2 font-mono text-xs text-slate-600">
-                <input
-                  type="number"
-                  onChange={({ target: { value } }) => updateCoordinates([coordinates?.[0], value])}
-                  className="overflow-hidden"
-                  value={
-                    coordinates
-                      ? `${coordinates[1]}`
-                      : "No coordinates selected"
-                  }
-                />
-              </div>
-              <button
+          <div className="flex flex-col gap-2 text-sm text-slate-700 w-[100%]">
+            <Label value={<p>Coordinates</p>} styleType="default" />
+            <div className="flex justify-center items-center gap-1 ]">
+              <Input
+                type={"number"}
+                width={"44%"}
+                onchange={({ target: { value } }) => updateCoordinates([Number(value), Number(coordinates?.[1])])}
+                value={coordinates ? `${coordinates[0]}` : "No coordinates selected"}
+              />
+              <Input
+                type={"number"}
+                width={"44%"}
+                onchange={({ target: { value } }) => updateCoordinates([Number(coordinates?.[0]), Number(value)])}
+                value={coordinates ? `${coordinates[1]}` : "No coordinates selected"}
+              />
+              <Button
+                onclick={() => copyToclipboard(coordinates ? `${coordinates[0]},${coordinates[1]}` : '')}
+                styleType="default"
                 type="button"
-                onClick={async () => {
-                  const coordinates = selectedPoint?.geometry?.coordinates;
-                  if (!coordinates) {
-                    toast.error("No coordinates to copy.");
-                    return;
-                  }
-
-                  if (!navigator?.clipboard?.writeText) {
-                    toast.error("Clipboard is not available in this browser.");
-                    return;
-                  }
-
-                  try {
-                    await navigator.clipboard.writeText(`${coordinates[0]},${coordinates[1]}`);
-                    toast.success("Coordinates copied.");
-                  } catch (error) {
-                    console.error("Failed to copy coordinates", error);
-                    toast.error("Failed to copy coordinates.");
-                  }
-                }}
-                className="rounded-lg border border-slate-300 p-2 font-mono text-xs hover:bg-slate-50"
+                width="w-[10%]"
               >
                 <Copy size={18} />
-              </button>
+              </Button>
             </div>
-            <button
+            <Button
+              onclick={onChangeCoordinates}
+              styleType="default"
               type="button"
-              onClick={onChangeCoordinates}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+              width="w-[10%]"
             >
-              Pick on map
-            </button>
+              <p>Pick on map</p>
+            </Button>
           </div>
-
-          <label className="flex flex-col gap-1 text-sm text-slate-700 ">
-            <p>
-              Name <span className="text-xs text-slate-400">(optional)</span>
-            </p>
-            <input
-              value={selectedPoint?.properties.name || ""}
-              onChange={(event) => onChangeDetails("name", event.target.value)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none transition focus:border-slate-500"
-              placeholder="Exemplo de Ponto"
-            />
-          </label>
-
-          <label className="flex min-h-0 flex-1 flex-col gap-1 text-sm text-slate-700">
-            <p>
-              Description <span className="text-xs text-slate-400">(optional)</span>
-            </p>
-            <textarea
-              value={selectedPoint?.properties.description || ""}
-              onChange={(event) => onChangeDetails("description", event.target.value)}
-              className="min-h-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none transition focus:border-slate-500"
-              placeholder="Este e um ponto de exemplo."
-            />
-          </label>
+          <Label
+            value={<p>Name <span className="text-xs text-slate-400">(optional)</span></p>}
+            styleType="default"
+          />
+          <Input
+            type={"number"}
+            onchange={({ target: { value } }) => updateCoordinates([Number(coordinates?.[0]), Number(value)])}
+            value={selectedPoint?.properties.name || ""}
+            placeholder={"Exemplo de Ponto"}
+          />
+          <Label
+            value={<p>Description <span className="text-xs text-slate-400">(optional)</span></p>}
+            styleType="default"
+          />
+          <TextArea
+            value={selectedPoint?.properties.description || ''}
+            styleType={'default'}
+            onchange={(event) => onChangeDetails("description", event.target.value)}
+            placeholder={"Este e um ponto de exemplo."}
+          />
           <div className="flex items-center justify-end gap-3 pt-2">
             {isEditing ? (
               <button
@@ -213,3 +171,4 @@ export default function PointInsert({
     </div>
   );
 }
+

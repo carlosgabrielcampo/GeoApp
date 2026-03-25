@@ -125,7 +125,7 @@ export default function DynamicMap() {
   };
 
 
-  const updateCoordinates = (value: string) => {
+  const updateCoordinates = (value: [number, number]) => {
     console.log(value)
     setSelectedPoint((currentPoint) => {
       if (!currentPoint) {
