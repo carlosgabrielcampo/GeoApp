@@ -177,19 +177,26 @@ export default function DynamicMap() {
         doubleClickZoom={false}
         className="h-[100vh] w-[100vw]"
       >
-        <ChangeView position={position} zoom={zoom} />
-        <TileLayer attribution="" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <ChangeView
+          position={position}
+          zoom={zoom}
+        />
+        <TileLayer
+          attribution=""
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
         <PointsRenderer
           points={points}
           iconByType={iconByType}
           clickPoint={clickPoint}
           newPoint={newPointCoord}
         />
-        <ZoomHandler setZoom={setZoom} />
+        <ZoomHandler
+          setZoom={setZoom}
+        />
         <MapEventsHandler
           onPickCoordinates={(coordinates) => {
             const geoJsonCoordinates = toGeoJsonCoordinates(coordinates);
-
             setSelectedPoint((currentPoint) => ({
               ...(currentPoint ?? { ...emptyPoint }),
               geometry: {
