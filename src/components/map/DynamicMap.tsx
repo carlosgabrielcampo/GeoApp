@@ -5,11 +5,11 @@ import FeatureIcon from '@/assets/icons/pino-de-localizacao.ico'
 import { DataFormat } from "@/types/geojson";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import PointsRenderer from "./Points";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "../providers/LoadingScreenProvider";
 import SidebarProvider from "../providers/SidebarProvider";
 import L, { Icon, IconOptions } from 'leaflet'
 import { EditablePoint, PointSelection } from "@/types/points";
-import PointInsert from "../modal/pointInsert";
+import PointHandler from "../modal/PointHandler";
 import { toast } from "react-toastify";
 import { ZoomIn, ZoomOut } from "lucide-react";
 
@@ -83,6 +83,11 @@ export default function DynamicMap() {
   };
   const savePoint = async (feature: DataFormat) => {
     try {
+      if(feature.geometry.coordinates.some((e) => typeof e !== 'number') ){
+        toast.error('Coordinates not set')
+        return null
+      }
+
       if (selectedPoint?.id) {
         await updateFeature(selectedPoint.id, feature);
         toast.success("Point updated successfully.");
@@ -184,13 +189,14 @@ export default function DynamicMap() {
             setPosition={setPosition}
             setZoom={setZoom}
           />
-          <PointInsert
+          <PointHandler
             onChangeCoordinates={startCoordinatePicking}
             updateCoordinates={updateCoordinates}
             onChangeDetails={updateDraftField}
             selectedPoint={selectedPoint}
             isOpen={isModalOpen}
             onClose={() => {
+              console.log('closed')
               setIsPickingCoordinates(false);
               setSelectedPoint(null)
               setNewPointCoord(null)
@@ -253,19 +259,19 @@ function MapEventsHandler({
   return null;
 }
 
-function ZoomHandler({ setZoom }: { setZoom: (prev: number) => void }) {
+function ZoomHandler({ setZoom }: { setZoom: Dispatch<SetStateAction<number>> }) {
   return (
     <div className="pointer-events-auto absolute right-4 bottom-4 z-[400] gap-2 flex max-h-[calc(100vh-2rem)]">
       <button
         type="button"
-        onClick={() => setZoom((prev) => prev += 1)}
+        onClick={() => setZoom((prev) => prev + 1)}
         className="mt-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg transition hover:bg-slate-50"
       >
         <ZoomIn size={20} />
       </button>
       <button
         type="button"
-        onClick={() => setZoom((prev) => prev -= 1)}
+        onClick={() => setZoom((prev) => prev - 1)}
         className="mt-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg transition hover:bg-slate-50"
       >
         <ZoomOut size={20} />

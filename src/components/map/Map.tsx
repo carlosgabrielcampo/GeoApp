@@ -2,7 +2,7 @@
 
 
 import dynamic from "next/dynamic";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "../providers/LoadingScreenProvider";
 
 const DynamicMap = dynamic(() => import("./DynamicMap"), {
   ssr: false,

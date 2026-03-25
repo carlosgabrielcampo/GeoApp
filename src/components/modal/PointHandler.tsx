@@ -6,7 +6,7 @@ import { Copy, X } from "lucide-react";
 import { copyToclipboard } from "@/util/navigation";
 import { TextArea, Button, Input, Select, Label, Text } from "../ui";
 
-export default function PointInsert({
+export default function PointHandler({
   selectedPoint,
   isOpen,
   onClose,
@@ -85,8 +85,7 @@ export default function PointInsert({
           <Button
             onclick={onClose}
             styleType="default"
-            disabled={!selectedPoint?.geometry?.coordinates}
-            type="submit"
+            type="button"
           >
             <X size={16} />
           </Button>
@@ -140,7 +139,7 @@ export default function PointInsert({
             value={selectedPoint?.properties.name || ""}
             styleType="default"
             onchange={(event) => onChangeDetails("name", event.target.value)}
-            placeholder={"!xemple point"}
+            placeholder={"Exemple point"}
           />
           <Label
             value={<p>Description <span className="text-xs text-slate-400">(optional)</span></p>}
@@ -163,7 +162,7 @@ export default function PointInsert({
               </Button>
             ) : null}
             <Button
-              disabled={!selectedPoint?.geometry?.coordinates}
+              disabled={!selectedPoint?.geometry?.coordinates?.[0] || !selectedPoint?.geometry?.coordinates?.[1]}
               styleType="action"
               type="submit"
             >
