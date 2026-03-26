@@ -1,11 +1,9 @@
 "use client";
 
-import FeatureIcon from "@/assets/icons/pino-de-localizacao.ico";
 import LoadingScreen from "../providers/LoadingScreenProvider";
 import { MapEventsHandler } from "./controls/MapEventsHandler";
 import SidebarProvider from "../providers/SidebarProvider";
 import { MapContainer, TileLayer } from "react-leaflet";
-import { DataFormat } from "@/types/geojson";
 import { usePointEditor } from "./hooks/usePointEditor";
 import { useMapViewport } from "./hooks/useMapViewport";
 import { ZoomHandler } from "./controls/ZoomHandler";
@@ -13,6 +11,7 @@ import { useMapPoints } from "./hooks/useMapPoints";
 import { ChangeView } from "./controls/ChangeView";
 import PointHandler from "../modal/PointHandler";
 import PointsRenderer from "./PointsRenderer";
+import { DataFormat } from "@/types/geojson";
 import { emptyPoint } from "./constants";
 
 const MIN_ZOOM = 2;
