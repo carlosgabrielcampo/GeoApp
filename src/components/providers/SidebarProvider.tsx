@@ -1,20 +1,11 @@
 "use client";
 
-import { Dispatch, MouseEventHandler, SetStateAction, useState } from "react";
+import { SidebarProviderProps } from "@/types/points";
 import { ChevronLeft, ChevronRight, MapPinned, Plus } from "lucide-react";
-import { EditablePoint, PointSelection } from "@/types/points";
-import { DataFormat } from "@/types/geojson";
-import { emptyPoint } from "../map/constants";
+import { MouseEventHandler, useState } from "react";
 import { Button, Text } from "../ui";
 import Image from "next/image";
-
-type SidebarProviderProps = {
-  points: DataFormat[];
-  sidebarIconSrc: string;
-  clickPoint: (selected: PointSelection) => void;
-  setIsPickingCoordinates: (value: boolean) => void;
-  setSelectedPoint: Dispatch<SetStateAction<EditablePoint | null>>;
-};
+import { iconByType } from "../map/constants";
 
 type SidebarItemsProps = {
   name: string;
@@ -26,24 +17,10 @@ type SidebarItemsProps = {
 export default function SidebarProvider({
   points,
   clickPoint,
-  sidebarIconSrc,
-  setSelectedPoint,
-  setIsPickingCoordinates,
+  onCreatePoint,
 }: SidebarProviderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const openCreatePoint = () => {
-    setIsPickingCoordinates(false);
-    setSelectedPoint({
-      ...emptyPoint,
-      properties: {
-        ...emptyPoint.properties,
-      },
-      geometry: {
-        ...emptyPoint.geometry,
-      },
-    });
-  };
-
+  
   return (
     <aside className="pointer-events-auto absolute left-4 top-4 z-[400] flex max-h-[calc(100vh-2rem)]">
       <Button
@@ -70,7 +47,7 @@ export default function SidebarProvider({
             </div>
             <Button
               type="button"
-              onclick={openCreatePoint}
+              onclick={onCreatePoint}
               styleType="action"
               width="100%"
             >
@@ -80,22 +57,18 @@ export default function SidebarProvider({
               </>
             </Button>
           </div>
-
+          
           <div className="flex-1 overflow-y-auto px-3 pb-3">
             {points.length ? (
               <div className="space-y-2">
                 {points.map((point) => {
-                  if (!point.id) {
-                    return null;
-                  }
-
+                  if (!point.id) { return null; }
                   const pointId = point.id;
-
                   return (
                     <SidebarItem
                       key={pointId}
                       onclick={() => clickPoint({ ...point, id: pointId })}
-                      iconSrc={sidebarIconSrc}
+                      iconSrc={iconByType[point.type].options.iconUrl}
                       name={point.properties.name || "Untitled point"}
                       description={point.properties.description || "No description yet."}
                     />
@@ -121,13 +94,8 @@ export function SidebarItem({ onclick, iconSrc, name, description }: SidebarItem
       onClick={onclick}
       className="flex w-full items-start gap-3 rounded-2xl border border-transparent px-3 py-3 text-left transition hover:border-slate-400 hover:bg-slate-50"
     >
-      <Image
-        src={iconSrc}
-        alt=""
-        width={32}
-        height={32}
-        className="mt-0.5 h-8 w-8 shrink-0"
-      />
+      
+      <Image src={iconSrc} alt="" width={32} height={32} className="mt-0.5 h-8 w-8 shrink-0" />
       <div className="min-w-0">
         <Text value={name} styleType="default" />
         <Text value={description} styleType="sm-muted" />

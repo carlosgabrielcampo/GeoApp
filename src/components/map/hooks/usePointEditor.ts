@@ -13,10 +13,38 @@ export function usePointEditor({ defaultPoint, setPosition }: UsePointEditorPara
     const [newPointCoord, setNewPointCoord] = useState<LeafletCoordinates | null>(null);
     const [isPickingCoordinates, setIsPickingCoordinates] = useState(false);
 
+    const updateSelectedPoint = (
+        updater: (currentPoint: EditablePoint) => EditablePoint
+    ) => {
+        setSelectedPoint((currentPoint) => {
+            if (!currentPoint) {
+                return currentPoint;
+            }
+
+            return updater(currentPoint);
+        });
+    };
+
     const resetEditor = () => {
         setIsPickingCoordinates(false);
         setSelectedPoint(null);
         setNewPointCoord(null);
+    };
+
+    const createDraftPoint = (): EditablePoint => ({
+        ...defaultPoint,
+        properties: {
+            ...defaultPoint.properties,
+        },
+        geometry: {
+            ...defaultPoint.geometry,
+        },
+    });
+
+    const openCreatePoint = () => {
+        setIsPickingCoordinates(false);
+        setNewPointCoord(null);
+        setSelectedPoint(createDraftPoint());
     };
 
     const startCoordinatePicking = () => {
@@ -25,35 +53,23 @@ export function usePointEditor({ defaultPoint, setPosition }: UsePointEditorPara
     };
 
     const updateDraftField = (field: "name" | "description", value: string) => {
-        setSelectedPoint((currentPoint) => {
-            if (!currentPoint) {
-                return currentPoint;
-            }
-
-            return {
-                ...currentPoint,
-                properties: {
-                    ...currentPoint.properties,
-                    [field]: value,
-                },
-            };
-        });
+        updateSelectedPoint((currentPoint) => ({
+            ...currentPoint,
+            properties: {
+                ...currentPoint.properties,
+                [field]: value,
+            },
+        }));
     };
 
     const updateCoordinates = (value: DataFormat["geometry"]["coordinates"]) => {
-        setSelectedPoint((currentPoint) => {
-            if (!currentPoint) {
-                return currentPoint;
-            }
-
-            return {
-                ...currentPoint,
-                geometry: {
-                    ...currentPoint.geometry,
-                    coordinates: value,
-                },
-            };
-        });
+        updateSelectedPoint((currentPoint) => ({
+            ...currentPoint,
+            geometry: {
+                ...currentPoint.geometry,
+                coordinates: value,
+            },
+        }));
     };
 
     const clickPoint = (selected: PointSelection) => {
@@ -67,7 +83,7 @@ export function usePointEditor({ defaultPoint, setPosition }: UsePointEditorPara
         const geoJsonCoordinates = toGeoJsonCoordinates(coordinates);
 
         setSelectedPoint((currentPoint) => ({
-            ...(currentPoint ?? { ...defaultPoint }),
+            ...(currentPoint ?? createDraftPoint()),
             geometry: {
                 type: "Point",
                 coordinates: geoJsonCoordinates,
@@ -75,6 +91,7 @@ export function usePointEditor({ defaultPoint, setPosition }: UsePointEditorPara
         }));
         setNewPointCoord(coordinates);
         setIsPickingCoordinates(false);
+        setPosition(coordinates);
         toast.success("Coordinates selected.");
     };
 
@@ -87,14 +104,13 @@ export function usePointEditor({ defaultPoint, setPosition }: UsePointEditorPara
         clickPoint,
         resetEditor,
         isModalOpen,
-        newPointCoord,
         selectedPoint,
-        setSelectedPoint,
+        newPointCoord,
+        openCreatePoint,
         updateDraftField,
         updateCoordinates,
         selectCoordinates,
         isPickingCoordinates,
         startCoordinatePicking,
-        setIsPickingCoordinates,
     };
 }

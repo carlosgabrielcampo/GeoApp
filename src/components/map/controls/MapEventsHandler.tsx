@@ -1,31 +1,28 @@
-import { Dispatch, SetStateAction } from "react";
 import { LeafletCoordinates } from "@/types/geojson";
 import { useMapEvents } from "react-leaflet";
 
 export function MapEventsHandler({
-  setZoom,
-  isModalOpen,
-  setPosition,
-  zoomPressed,
+  syncZoom,
   onPickCoordinates,
+  canPickCoordinates,
+  shouldIgnoreDoubleClick,
 }: {
-  isModalOpen: boolean;
-  zoomPressed: boolean;
-  setZoom: Dispatch<SetStateAction<number>>;
-  setPosition: (coordinates: LeafletCoordinates) => void;
+  canPickCoordinates: boolean;
+  syncZoom: (zoom: number) => void;
+  shouldIgnoreDoubleClick: () => boolean;
   onPickCoordinates: (coordinates: LeafletCoordinates) => void;
 }) {
   const map = useMapEvents({
     dblclick(event) {
-      console.log('zoomPressed', zoomPressed)
-      if (!isModalOpen && !zoomPressed) {
-        const coordinates: LeafletCoordinates = [event.latlng.lat, event.latlng.lng];
-        onPickCoordinates(coordinates);
-        setPosition(coordinates);
+      if (canPickCoordinates || shouldIgnoreDoubleClick()) {
+        return;
       }
+
+      const coordinates: LeafletCoordinates = [event.latlng.lat, event.latlng.lng];
+      onPickCoordinates(coordinates);
     },
     zoomend() {
-      setZoom(map.getZoom());
+      syncZoom(map.getZoom());
     },
   });
 

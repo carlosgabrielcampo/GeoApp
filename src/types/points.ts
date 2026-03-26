@@ -46,3 +46,9 @@ export type PointInsertProps = {
   updateCoordinates: (value: GeoJsonCoordinates) => void;
   onChangeDetails: (field: "name" | "description", value: string) => void;
 };
+
+export type SidebarProviderProps = {
+  points: DataFormat[];
+  onCreatePoint: () => void;
+  clickPoint: (selected: PointSelection) => void;
+};
